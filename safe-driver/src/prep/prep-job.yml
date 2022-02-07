@@ -1,0 +1,26 @@
+# Copyright (c) 2022 Microsoft
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+compute: azureml:cpu-cluster
+environment: azureml:lightgbm:2022-02-07-16-59-11-4201152
+experiment_name: dev-prep
+inputs:
+  input_dataset:
+    dataset: azureml:safe_driver:1
+outputs:
+    labels:
+      mode: upload
+    features:
+      mode: upload
+command: >-
+  python prep-data.py
+  --input-data ${{inputs.input_dataset}}
+  --labels-output ${{outputs.labels}}
+  --features-output ${{outputs.features}}
+  --label-column target
+  id
+code:
+  local_path: ./

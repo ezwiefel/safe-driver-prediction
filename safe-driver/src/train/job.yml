@@ -1,0 +1,21 @@
+# Copyright (c) 2022 Microsoft
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+compute: azureml:cpu-cluster
+environment: azureml:lightgbm:2022-02-07-16-59-11-4201152
+experiment_name: dev-training
+inputs:
+  training_data:
+    dataset: azureml:safe_driver:1
+outputs:
+    metadata:
+      mode: upload
+command: >-
+  python train.py
+  --training-data ${{inputs.training_data}}
+  --output-folder ${{outputs.metadata}}
+code:
+  local_path: .

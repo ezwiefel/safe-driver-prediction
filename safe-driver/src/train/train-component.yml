@@ -1,0 +1,81 @@
+# Copyright (c) 2022 Microsoft
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+type: command
+
+name: train_lightgbm
+display_name: Train LightGBM Model
+description: >-
+    Prep the data and split into labels and features
+is_deterministic: true
+
+code:
+  local_path: ./
+
+environment: azureml:lightgbm:1
+inputs:
+  features: 
+    type: path
+  labels: 
+    type: path
+  learning_rate: 
+    description: The learning rate to pass to LightGBM
+    type: number
+    default: 0.03
+  boosting_type: 
+    description: The boosting type to pass to LightGBM
+    type: string
+    default: gbdt
+  objective: 
+    description: The objective to pass to LightGBM
+    type: string
+    default: binary
+  metric:
+    description: The metric to pass to LightGBM
+    type: string
+    default: auc
+  sub_feature:
+    description: The sub feature to pass to LightGBM
+    type: number
+    default: 0.7
+  num_leaves:
+    description: The number of leaves to pass to LightGBM
+    type: number
+    default: 60
+  min_data:
+    description: The minimum data to pass to LightGBM
+    type: number
+    default: 100
+  min_hessian:
+    description: The minimum hessian to pass to LightGBM
+    type: number
+    default: 1
+  random_state:
+    description: The random state to use for dataset splitting
+    type: number
+    default: 42
+  test_size:
+    description: The test size to use for dataset splitting
+    type: number
+    default: 0.2
+outputs:
+  metadata:
+    type: path
+command: >-
+  python train.py
+  --feature-data ${{inputs.features}}
+  --label-data ${{inputs.labels}}
+  --output-folder ${{outputs.metadata}}
+  --learning-rate ${{inputs.learning_rate}}
+  --boosting-type ${{inputs.boosting_type}}
+  --objective ${{inputs.objective}}
+  --metric ${{inputs.metric}}
+  --sub-feature ${{inputs.sub_feature}}
+  --num-leaves ${{inputs.num_leaves}}
+  --min-data ${{inputs.min_data}}
+  --min-hessian ${{inputs.min_hessian}}
+  --random-state ${{inputs.random_state}}
+  --test-size ${{inputs.test_size}}

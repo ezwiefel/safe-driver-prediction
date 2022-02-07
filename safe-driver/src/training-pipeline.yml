@@ -1,0 +1,74 @@
+# Copyright (c) 2022 Microsoft
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+experiment_name: safe-driver-training-dev
+description: "Train safe driver model and register if it outperforms currently registered model"
+
+compute: azureml:cpu-cluster
+
+inputs:
+  raw_data:
+    dataset: azureml:safe_driver:1
+  validation_data:
+    dataset: azureml:safe_driver_validation:1
+  learning_rate: 0.03
+  boosting_type: gbdt
+  objective: binary
+  metric: auc
+  sub_feature: 0.7
+  num_leaves: 60
+  min_data: 100
+  min_hessian: 1
+  random_state: 42
+  test_size: 0.2
+
+jobs:
+  prep-data:
+    type: component
+    component: file:./prep/prep-component.yml
+    inputs:
+      raw_data: ${{inputs.raw_data}}
+    outputs:
+      features:
+        mode: upload
+      labels:
+        mode: upload
+  
+  train:
+    component: file:./train/train-component.yml
+    inputs:
+      features: ${{jobs.prep-data.outputs.features}}
+      labels: ${{jobs.prep-data.outputs.labels}}
+      learning_rate: ${{inputs.learning_rate}}
+      boosting_type: ${{inputs.boosting_type}}
+      objective: ${{inputs.objective}}
+      metric: ${{inputs.metric}}
+      sub_feature: ${{inputs.sub_feature}}
+      num_leaves: ${{inputs.num_leaves}}
+      min_data: ${{inputs.min_data}}
+      min_hessian: ${{inputs.min_hessian}}
+      random_state: ${{inputs.random_state}}
+      test_size: ${{inputs.test_size}}
+
+    outputs:
+      metadata:
+        mode: upload
+      
+  # evaluate:
+  #   type: command
+  #   display_name: Evaluate LightGBM Model
+  #   environment: azureml:lightgbm:2022-02-07-16-59-11-4201152
+  #   inputs:
+  #     model: ${{jobs.train.outputs.metadata}}
+  #     validation_data: ${{inputs.validation_data}}
+  #   command: >-
+  #     python evaluate.py
+  #     --model ${{inputs.model}}
+  #     --feature-data ${{inputs.features}}
+  #     --label-data ${{inputs.labels}}
+  #   code:
+  #     local_path: ./evaluate
