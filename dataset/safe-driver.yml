@@ -1,0 +1,10 @@
+# Copyright (c) 2022 Microsoft
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
+$schema: https://azuremlschemas.azureedge.net/latest/dataset.schema.json
+name: safe_driver
+description: Safe Driver dataset
+paths:
+  - file: azureml://datastores/driver_telematics/paths/porto_seguro_safe_driver_prediction_input.csv

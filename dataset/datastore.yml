@@ -1,0 +1,13 @@
+# Copyright (c) 2022 Microsoft
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
+$schema: https://azuremlschemas.azureedge.net/latest/azureBlob.schema.json
+type: azure_blob
+name: driver_telematics
+description: Driver telematics datastore for Safe Driver prediction
+account_name: publicmldatasc
+container_name: dofords
+credentials:
+  sas_token: "OVERRIDE WITH --set credentials.sas_token=<SAS_TOKEN>"
