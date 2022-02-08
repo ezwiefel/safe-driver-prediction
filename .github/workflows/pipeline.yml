@@ -22,6 +22,15 @@ on:
       datastore_sas_token:
         description: Datastore SAS Token
         required: true
+      AML_WORKSPACE:
+        description: Azure Machine Learning Workspace
+        required: true
+      AML_RESOURCE_GROUP:
+        description: Azure Machine Learning Resource Group
+        required: true
+      AML_SUBSCRIPTION:
+        description: Azure Machine Learning Subscription ID
+        required: true
 jobs:
   pipeline:
     runs-on: ubuntu-latest
