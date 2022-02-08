@@ -23,7 +23,7 @@ on:
 jobs:
   pipeline:
     runs-on: ubuntu-latest
-    environment: ${{ environment }}
+    environment: ${{ inputs.environment }}
     name: Run / Publish Pipeline
 
     steps:
