@@ -1,6 +1,13 @@
+name: Run / Publish Pipeline
+
 on:
-  workflow_call:
+  workflow_call:    
     inputs:
+      environment:
+        required: true
+        description: Environment to run the pipeline in.
+        type: string
+        default: development
       resource_group:
         required: true
         type: string
@@ -22,6 +29,7 @@ on:
 jobs:
   pipeline:
     runs-on: ubuntu-latest
+    environment: ${{ environment }}
     name: Run / Publish Pipeline
 
     steps:
