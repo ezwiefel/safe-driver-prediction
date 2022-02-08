@@ -1,4 +1,4 @@
-name: Run / Publish Pipeline
+name: Run or Publish Pipeline
 
 on:
   workflow_call:    
@@ -35,7 +35,7 @@ jobs:
       - name: Set up Python Environment
         uses: actions/setup-python@v1
         with:
-          python-version: "3.9"
+          python-version: "3.8"
       - name: Install Python Build Agent Dependencies
         run: |
           pip install pip==20.2.3
