@@ -1,5 +1,5 @@
 environment:
-	az ml environment create --file ./safe-driver/env/environment.yml
+	az ml environment create --file ./safe-driver/environ/environment.yml
 
 train:
 	az ml job create --file ./safe-driver/src/train/job.yml

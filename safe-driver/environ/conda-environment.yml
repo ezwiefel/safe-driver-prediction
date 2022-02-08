@@ -1,0 +1,14 @@
+channels:
+- anaconda
+- conda-forge
+dependencies:
+- python=3.9.*
+- lightgbm=3.2.1
+- pandas=1.3.5
+- scikit-learn=1.0.2
+- typer=0.4.0
+- pyarrow=6.0.1
+- matplotlib=3.5.0
+- pip
+- pip:
+  - azureml-mlflow==1.38.0
