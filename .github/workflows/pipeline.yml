@@ -65,6 +65,10 @@ jobs:
           az ml environment create --file ./safe-driver/environ/environment.yml
 
       - name: Run Pipeline
+        env:
+          AML_SUBSCRIPTION: ${{ secrets.AML_SUBSCRIPTION }}
+          AML_RESOURCE_GROUP: ${{ secrets.AML_RESOURCE_GROUP }}
+          AML_WORKSPACE: ${{ secrets.AML_WORKSPACE }}
         run: >
           python ./safe-driver/src/pipeline/pipeline.py
           --submit-pipeline ${{ inputs.submit_pipeline }} 
@@ -72,9 +76,9 @@ jobs:
           --run-id ${{ github.run_id }}
           --run-attempt ${{ github.run_attempt }}
           --experiment-name safe-driver-training
-          --subscription-id ${{ secrets.AML_SUBSCRIPTION }}
-          --resource-group ${{ secrets.AML_RESOURCE_GROUP }}
-          --workspace-name ${{ secrets.AML_WORKSPACE }}
+          --subscription-id $AML_SUBSCRIPTION
+          --resource-group $AML_RESOURCE_GROUP
+          --workspace-name $AML_WORKSPACE
           --wait-for-completion
       
       - name: Log Out of Azure
