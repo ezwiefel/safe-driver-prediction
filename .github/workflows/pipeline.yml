@@ -38,7 +38,7 @@ jobs:
           python-version: "3.9"
       - name: Install Python Build Agent Dependencies
         run: |
-          pip install -r ./.github/workflow/build-requirements.txt
+          pip install -r ./.github/workflows/build-requirements.txt
       - name: Azure Login
         uses: azure/login@v1
         with:
