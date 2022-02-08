@@ -265,7 +265,7 @@ def main(
     wait_for_completion: bool = typer.Option(False, "--wait-for-completion")
 ) -> None:
     """Submit and/or publish the pipeline"""
-    
+
     lgbm_environment = WS.environments[environment]
     run_config = RunConfiguration()
     run_config.environment = lgbm_environment
@@ -291,9 +291,9 @@ def main(
     if submit_pipeline and not publish_pipeline:
         exp = Experiment(WS, experiment_name)
         run: PipelineRun = exp.submit(pipeline,
-                   pipeline_parameters={"force_registration": str(force_model_register),
-                                        "skip_registration": str(skip_model_register)},
-                   tags=tags)
+                                      pipeline_parameters={"force_registration": str(force_model_register),
+                                                           "skip_registration": str(skip_model_register)},
+                                      tags=tags)
 
         if wait_for_completion:
             run.wait_for_completion(show_output=True)
