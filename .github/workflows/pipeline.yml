@@ -35,7 +35,7 @@ jobs:
   pipeline:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    name: Run / Publish Pipeline
+    name: Run or Publish Pipeline
 
     steps:
       - name: Checkout Repository
