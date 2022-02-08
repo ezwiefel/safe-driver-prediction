@@ -6,6 +6,7 @@
 import sys
 from typing import Tuple
 from pathlib import Path
+from distutils.util import strtobool
 
 import typer
 from azureml.core import (ComputeTarget, Dataset,
@@ -250,10 +251,8 @@ def main(
     skip_model_register: bool = typer.Option(False, '--skip-registration',
                                              help="Skip the model registration. Ignores model "
                                                   "performance against the existing model"),
-    submit_pipeline: bool = typer.Option(True, "--skip-submit-pipeline",
-                                         help="Submit the pipeline for a run"),
-    publish_pipeline: bool = typer.Option(False, '--publish-pipeline',
-                                          help="Publish the pipeline"),
+    submit_pipeline: str = "True",
+    publish_pipeline: str = "False",
     experiment_name: str = typer.Option("pipeline-test",
                                         help="If submitting pipeline, submit under this experiment name"),
     debug_run: bool = typer.Option(False, "--debug",
@@ -282,7 +281,8 @@ def main(
     run_config = RunConfiguration()
     run_config.environment = lgbm_environment
 
-    
+    publish_pipeline = bool(strtobool(publish_pipeline))
+    submit_pipeline = bool(strtobool(submit_pipeline))
 
     pipeline: Pipeline = create_pipeline(
         prep_script_path=prep_script_path,
