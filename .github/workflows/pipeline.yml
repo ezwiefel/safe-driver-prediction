@@ -70,6 +70,11 @@ jobs:
           name: config.json
           json: '{"subscription_id": "${{secrets.AML_SUBSCRIPTION}}", "resource_group": "${{secrets.AML_RESOURCE_GROUP}}", "workspace_name": "${{secrets.AML_WORKSPACE}}"}'
 
+      - name: See config.json
+        run: |
+          echo "config.json:"
+          cat config.json
+
       - name: Run Pipeline
         run: >
           python ./safe-driver/src/pipeline/pipeline.py
