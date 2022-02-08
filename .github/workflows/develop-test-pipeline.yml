@@ -9,7 +9,7 @@ jobs:
   Development:
     uses: ezwiefel/safe-driver-prediction/.github/workflows/pipeline.yml@develop
     with:
-      environment: development
+      environment: Development
     secrets:
       azure_sp_creds: ${{ secrets.AZURE_SP_CREDS }}
       datastore_sas_token: ${{ secrets.PUBLICMLDATASC_SAS_TOKEN }}
