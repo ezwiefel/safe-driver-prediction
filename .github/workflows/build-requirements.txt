@@ -1,2 +1,3 @@
 typer==0.4.0
-azureml-mlflow==1.38.0
+azureml-defaults==1.38.0
+azureml-pipelines==1.38.0
