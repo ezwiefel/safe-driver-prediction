@@ -74,7 +74,7 @@ jobs:
           --experiment-name safe-driver-training
           --subscription-id ${{ secrets.AML_SUBSCRIPTION }}
           --resource-group ${{ secrets.AML_RESOURCE_GROUP }}
-          --workspace_name ${{ secrets.AML_WORKSPACE }}
+          --workspace-name ${{ secrets.AML_WORKSPACE }}
           --wait-for-completion
       
       - name: Log Out of Azure
