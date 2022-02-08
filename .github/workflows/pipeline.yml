@@ -65,7 +65,7 @@ jobs:
 
       - name: Run Pipeline
         run: >
-          python ./safe-driver/pipeline/pipeline.py 
+          python ./safe-driver/src/pipeline/pipeline.py
           --submit-pipeline ${{ inputs.submit_pipeline }} 
           --publish-pipeline ${{ inputs.publish_pipeline }}
           --run-id ${{ github.run_id }}
@@ -73,6 +73,7 @@ jobs:
           --experiment-name safe-driver-training
       
       - name: Log Out of Azure
+        if: ${{ always() }}
         run: |
           az logout
           az cache purge
