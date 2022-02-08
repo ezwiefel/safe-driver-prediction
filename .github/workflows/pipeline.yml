@@ -1,0 +1,98 @@
+name: Run or Publish Pipeline
+
+on:
+  workflow_call:    
+    inputs:
+      environment:
+        required: true
+        description: Environment to run the pipeline in.
+        type: string
+      submit_pipeline:
+        required: false
+        type: string
+        default: 'true'
+      publish_pipeline:
+        required: false
+        type: string
+        default: 'false'
+    secrets:
+      azure_sp_creds:
+        description: Azure Service Principal Credentials
+        required: true
+      datastore_sas_token:
+        description: Datastore SAS Token
+        required: true
+      AML_WORKSPACE:
+        description: Azure Machine Learning Workspace
+        required: true
+      AML_RESOURCE_GROUP:
+        description: Azure Machine Learning Resource Group
+        required: true
+      AML_SUBSCRIPTION:
+        description: Azure Machine Learning Subscription ID
+        required: true
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    name: Run / Publish Pipeline
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python Environment
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.8"
+      - name: Install Python Build Agent Dependencies
+        run: |
+          pip install pip==20.2.3
+          pip install -r ./.github/workflows/build-requirements.txt
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{secrets.azure_sp_creds}}
+
+      - name: Install Az ML CLI v2
+        run: |
+          az extension add --name ml
+
+      - name: Set AML Defaults
+        run: |
+          az configure --defaults group=${{secrets.AML_WORKSPACE}}  workspace=${{secrets.AML_RESOURCE_GROUP}}
+      - name: Check if Environment Files Updated
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            environ: 
+              - 'safe-driver/environ/**'
+      - if: steps.changes.outputs.environ == 'true'
+        name: Register Environment
+        run: |
+          az ml environment create --file ./safe-driver/environ/environment.yml
+
+      - name: Run Pipeline
+        env:
+          AML_SUBSCRIPTION: ${{ secrets.AML_SUBSCRIPTION }}
+          AML_RESOURCE_GROUP: ${{ secrets.AML_RESOURCE_GROUP }}
+          AML_WORKSPACE: ${{ secrets.AML_WORKSPACE }}
+        run: >
+          python ./safe-driver/src/pipeline/pipeline.py
+          --submit-pipeline ${{ inputs.submit_pipeline }} 
+          --publish-pipeline ${{ inputs.publish_pipeline }}
+          --run-id ${{ github.run_id }}
+          --run-attempt ${{ github.run_attempt }}
+          --experiment-name safe-driver-training
+          --subscription-id $AML_SUBSCRIPTION
+          --resource-group $AML_RESOURCE_GROUP
+          --workspace-name $AML_WORKSPACE
+          --wait-for-completion
+      
+      - name: Log Out of Azure
+        if: ${{ always() }}
+        run: |
+          az logout
+          az cache purge
+          az account clear

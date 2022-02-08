@@ -1,0 +1,18 @@
+name: Run Pipeline Test | Development
+
+on: 
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  Development:
+    uses: ezwiefel/safe-driver-prediction/.github/workflows/pipeline.yml@develop
+    with:
+      environment: Development
+    secrets:
+      azure_sp_creds: ${{ secrets.AZURE_SP_CREDS }}
+      datastore_sas_token: ${{ secrets.PUBLICMLDATASC_SAS_TOKEN }}
+      AML_WORKSPACE: ${{ secrets.AML_WORKSPACE }}
+      AML_RESOURCE_GROUP: ${{ secrets.AML_RESOURCE_GROUP }}
+      AML_SUBSCRIPTION: ${{ secrets.AML_SUBSCRIPTION }}
