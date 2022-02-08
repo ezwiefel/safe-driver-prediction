@@ -259,7 +259,9 @@ def main(
     environment: str = "lightgbm",
     aml_compute_name: str = 'cpu-cluster',
     input_dataset_name: str = 'safe_driver',
-    validation_dataset_name: str = 'safe_driver_validation'
+    validation_dataset_name: str = 'safe_driver_validation',
+    run_id: str = None,
+    run_attempt: int = None,
 ) -> None:
     """Submit and/or publish the pipeline"""
 
@@ -280,10 +282,17 @@ def main(
     )
     pipeline.validate()
 
+    if run_id or run_attempt:
+        tags = {"run": run_id, "attempt": run_attempt}
+    else:
+        tags = None
+
     if submit_pipeline and not publish_pipeline:
         exp = Experiment(WS, experiment_name)
-        exp.submit(pipeline, pipeline_parameters={"force_registration": str(force_model_register),
-                                                  "skip_registration": str(skip_model_register)})
+        exp.submit(pipeline,
+                   pipeline_parameters={"force_registration": str(force_model_register),
+                                        "skip_registration": str(skip_model_register)},
+                   tags=tags)
 
     if publish_pipeline:
         published_pipeline: PublishedPipeline = pipeline.publish(

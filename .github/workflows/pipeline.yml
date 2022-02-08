@@ -19,7 +19,9 @@ on:
       azure_sp_creds:
         description: Azure Service Principal Credentials
         required: true
-
+      datastore_sas_token:
+        description: Datastore SAS Token
+        required: true
 jobs:
   pipeline:
     runs-on: ubuntu-latest
@@ -34,7 +36,9 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: "3.9"
-      
+      - name: Install Python Build Agent Dependencies
+        run: |
+          pip install -r ./.github/workflow/build-requirements.txt
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -47,7 +51,29 @@ jobs:
       - name: Set AML Defaults
         run: |
           az configure --defaults group=${{secrets.AML_WORKSPACE}}  workspace=${{secrets.AML_RESOURCE_GROUP}}
-      
-      - name: List Workspaces
+      - name: Check if Environment Files Updated
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            environ: 
+              - 'safe-driver/environ/**'
+      - if: steps.changes.outputs.environ == 'true'
+        name: Register Environment
         run: |
-          az ml workspace list
+          az ml environment create --file ./safe-driver/environ/environment.yml
+
+      - name: Run Pipeline
+        run: ->
+          python ./safe-driver/pipeline/pipeline.py 
+          --submit-pipeline ${{ inputs.submit_pipeline }} 
+          --publish-pipeline ${{ inputs.publish_pipeline }}
+          --run-id ${{ github.run_id }}
+          --run-attempt ${{ github.run_attempt }}
+          --experiment-name safe-driver-training
+      
+      - name: Log Out of Azure
+        run: |
+          az logout
+          az cache purge
+          az account clear
