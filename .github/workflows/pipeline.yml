@@ -66,15 +66,15 @@ jobs:
 
       - name: Make config.json
         run: >
-          jq -n 
-          --arg sub "${{secrets.AML_SUBSCRIPTION}}"
-          --arg group "${{secrets.AML_RESOURCE_GROUP}}"
-          --arg workspace "${{secrets.AML_WORKSPACE}}"
-          '{
-            "subscriptionId": $sub,
-            "resourceGroup": $group,
-            "workspaceName": $workspace
-          }' > config.json
+          # jq -n 
+          # --arg sub "${{secrets.AML_SUBSCRIPTION}}"
+          # --arg group "${{secrets.AML_RESOURCE_GROUP}}"
+          # --arg workspace "${{secrets.AML_WORKSPACE}}"
+          printf '{
+            "subscription_id": %s,
+            "resource_group": %s,
+            "workspace_name": %s
+          }' ${{secrets.AML_SUBSCRIPTION}} ${{secrets.AML_RESOURCE_GROUP}} ${{secrets.AML_WORKSPACE}} > config.json
         # uses: jsdaniell/create-json@1.1.2
         # with:
         #   name: config.json
