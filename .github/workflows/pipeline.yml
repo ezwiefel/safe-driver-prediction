@@ -7,13 +7,12 @@ on:
         required: true
         description: Environment to run the pipeline in.
         type: string
-        default: development
       submit_pipeline:
-        required: true
+        required: false
         type: string
         default: 'true'
       publish_pipeline:
-        required: true
+        required: false
         type: string
         default: 'false'
     secrets:
