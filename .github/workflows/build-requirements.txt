@@ -1,3 +1,4 @@
 typer==0.4.0
 azureml-defaults==1.38.0
 azureml-pipeline==1.38.0
+azure-cli-core==2.33.0
