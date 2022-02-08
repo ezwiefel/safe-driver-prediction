@@ -1,5 +1,5 @@
 # Copyright (c) 2022 Microsoft
-# 
+#
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 
@@ -16,6 +16,7 @@ from lightgbm import Dataset, Booster
 from pandas import DataFrame
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
+from azureml.core import Run
 
 METADATA_JSON = "metadata.json"
 MODEL_NAME = "SafeDriverModel"
@@ -99,9 +100,11 @@ def get_model_metrics(model: Booster, data: Dataset) -> dict:
 
 
 def save_model_metadata(run_id: str, model_name: str, output_file: Path) -> None:
+    run = Run.get_context()
+
     with open(output_file, 'w+') as file_handler:
         metadata = dict(
-            run_id=run_id,
+            run_id=run.id,
             model_name=model_name
         )
         json.dump(metadata, file_handler)
@@ -111,6 +114,7 @@ def main(
         label_data: Path = typer.Option(..., exists=True, dir_okay=True, file_okay=True),
         feature_data: Path = typer.Option(..., exists=True, dir_okay=True, file_okay=True),
         output_folder: Path = typer.Option(..., file_okay=False, dir_okay=True),
+        model_name: str = MODEL_NAME,
         learning_rate: float = 0.03,
         boosting_type: str = "gbdt",
         objective: str = "binary",
@@ -123,6 +127,9 @@ def main(
         random_state: int = 0,
         test_size: float = 0.2,
 ) -> None:
+
+    # Create output folder
+    output_folder.mkdir(parents=True, exist_ok=True)
 
     # Prepare parameters dict
     model_params = dict(
@@ -144,7 +151,7 @@ def main(
     feature_df = read_dataframe(feature_data)
     datasets = split_data(feature_df=feature_df,
                           label_df=label_df,
-                          test_size=test_size, 
+                          test_size=test_size,
                           random_state=random_state)
 
     with mlflow.start_run() as run:
@@ -162,7 +169,7 @@ def main(
         # Save the Run ID into the output folder along with the model name
         save_model_metadata(
             run_id=run.info.run_id,
-            model_name=MODEL_NAME,
+            model_name=model_name,
             output_file=metadata_path
         )
 

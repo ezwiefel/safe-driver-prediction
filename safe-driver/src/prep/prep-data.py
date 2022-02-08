@@ -39,11 +39,14 @@ def read_dataframe(input_path: Path) -> DataFrame:
 def main(
     drop_columns: List[str],
     input_data: Path = typer.Option(..., exists=True, dir_okay=True, file_okay=True),
-    labels_output: Path = typer.Option(..., exists=True, dir_okay=True, file_okay=False),
-    features_output: Path = typer.Option(..., exists=True, dir_okay=True, file_okay=False),
+    labels_output: Path = typer.Option(..., dir_okay=True, file_okay=False),
+    features_output: Path = typer.Option(..., dir_okay=True, file_okay=False),
     label_column: str = 'target',
 ):
     data_df = read_dataframe(input_data)
+
+    labels_output.mkdir(exist_ok=True, parents=True)
+    features_output.mkdir(exist_ok=True, parents=True)
 
     if not isinstance(drop_columns, list):
         drop_columns = list(drop_columns)

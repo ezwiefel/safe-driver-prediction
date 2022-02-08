@@ -58,17 +58,11 @@ jobs:
       metadata:
         mode: upload
       
-  # evaluate:
-  #   type: command
-  #   display_name: Evaluate LightGBM Model
-  #   environment: azureml:lightgbm:2022-02-07-16-59-11-4201152
-  #   inputs:
-  #     model: ${{jobs.train.outputs.metadata}}
-  #     validation_data: ${{inputs.validation_data}}
-  #   command: >-
-  #     python evaluate.py
-  #     --model ${{inputs.model}}
-  #     --feature-data ${{inputs.features}}
-  #     --label-data ${{inputs.labels}}
-  #   code:
-  #     local_path: ./evaluate
+  evaluate:
+    component: file:./evaluate/evaluate-component.yml
+    inputs:
+      metadata: ${{jobs.train.outputs.metadata}}
+      validation_data: ${{inputs.validation_data}}
+    outputs:
+      recommendation:
+        mode: upload

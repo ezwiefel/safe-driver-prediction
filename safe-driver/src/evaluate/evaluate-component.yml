@@ -1,0 +1,33 @@
+# Copyright (c) 2022 Microsoft
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+type: command
+
+name: evaluate_models
+display_name: Compare Champion / Challenger Models
+description: >-
+    Compare the champion and challenger models
+version: 1
+is_deterministic: true
+environment: azureml:lightgbm:1
+
+code:
+  local_path: ./
+
+inputs:
+    validation_data:
+      type: path
+    metadata:
+      type: path
+outputs:
+  recommendation: 
+    type: path
+  
+command: >-
+  python evaluate.py 
+  --model-metadata ${{inputs.metadata}}
+  --register-model-folder ${{outputs.recommendation}}
+  --validation-data-path ${{inputs.validation_data}}
