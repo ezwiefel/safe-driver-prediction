@@ -16,27 +16,23 @@ from azureml.pipeline.core import (Pipeline, PipelineData, PipelineParameter,
                                    PublishedPipeline, PipelineRun)
 from azureml.pipeline.steps import PythonScriptStep
 
-CLI_AUTH = AzureCliAuthentication()
-# noinspection PyTypeChecker
-WS = Workspace.from_config(auth=CLI_AUTH)
-
-
 # noinspection PyTypeChecker
 def create_data_prep_step(
     prep_directory: Path,
     input_dataset: Dataset,
     compute: ComputeTarget,
     debug_run: bool,
-    run_config: RunConfiguration
+    run_config: RunConfiguration,
+    pipeline_datastore
 ) -> Tuple[PythonScriptStep, PipelineData, PipelineData]:
     feature_data = PipelineData(
         name="features",
-        datastore=WS.get_default_datastore(),
+        datastore=pipeline_datastore,
         is_directory=True
     )
     label_data = PipelineData(
         name="labels",
-        datastore=WS.get_default_datastore(),
+        datastore=pipeline_datastore,
         is_directory=True
     )
     input = input_dataset.as_named_input("raw_data")
@@ -65,12 +61,13 @@ def create_train_model_step(
     label_data: PipelineData,
     compute: ComputeTarget,
     debug_run: bool,
-    run_config: RunConfiguration
+    run_config: RunConfiguration,
+    pipeline_datastore
 ) -> Tuple[PythonScriptStep, PipelineData]:
 
     metadata_folder = PipelineData(
         name="metadata",
-        datastore=WS.get_default_datastore(),
+        datastore=pipeline_datastore,
         is_directory=True
     )
 
@@ -101,7 +98,8 @@ def create_evaluate_model_step(
     compute: ComputeTarget,
     validation_data: Dataset,
     debug_run: bool,
-    run_config: RunConfiguration
+    run_config: RunConfiguration,
+    pipeline_datastore
 ) -> Tuple[PythonScriptStep, PipelineData]:
     """
     Creates "Evaluate Model" Step
@@ -109,7 +107,7 @@ def create_evaluate_model_step(
     output_folder = "./outputs"
     output_data = PipelineData(
         name="recommendation",
-        datastore=WS.get_default_datastore(),
+        datastore=pipeline_datastore,
         is_directory=True,
         output_path_on_compute=output_folder,
         output_mode="upload"
@@ -180,17 +178,18 @@ def create_pipeline(
     aml_compute: str,
     input_dataset: str,
     validation_dataset: str,
-    run_config: RunConfiguration
+    run_config: RunConfiguration,
+    ws: Workspace
 ) -> Pipeline:
     """
     Creates the overall Pipeline
 
     Dataset -> Convert to Parquet -> Create Features -> (Train Model -> Evaluate Model) -> Register Model
     """
-    cpu_cluster = WS.compute_targets[aml_compute]
+    cpu_cluster = ws.compute_targets[aml_compute]
 
-    raw_csv_data = WS.datasets[input_dataset]
-    validation_data = WS.datasets[validation_dataset]
+    raw_csv_data = ws.datasets[input_dataset]
+    validation_data = ws.datasets[validation_dataset]
 
     # Prep Data step
     prep_step, features, labels = create_data_prep_step(
@@ -198,7 +197,8 @@ def create_pipeline(
         compute=cpu_cluster,
         input_dataset=raw_csv_data,
         debug_run=debug_run,
-        run_config=run_config
+        run_config=run_config,
+        pipeline_datastore=ws.get_default_datastore()
     )
 
     # Train Model Step
@@ -208,7 +208,8 @@ def create_pipeline(
         label_data=labels,
         compute=cpu_cluster,
         debug_run=debug_run,
-        run_config=run_config
+        run_config=run_config,
+        pipeline_datastore=ws.get_default_datastore()
     )
 
     # Evaluate Model Step
@@ -218,7 +219,8 @@ def create_pipeline(
         compute=cpu_cluster,
         validation_data=validation_data,
         debug_run=debug_run,
-        run_config=run_config
+        run_config=run_config,
+        pipeline_datastore=ws.get_default_datastore()
     )
 
     # Register Model Step
@@ -231,7 +233,7 @@ def create_pipeline(
         run_config=run_config
     )
 
-    return Pipeline(WS, steps=[reg_step])
+    return Pipeline(ws, steps=[reg_step])
 
 
 def main(
@@ -262,13 +264,25 @@ def main(
     validation_dataset_name: str = 'safe_driver_validation',
     run_id: str = None,
     run_attempt: int = None,
-    wait_for_completion: bool = typer.Option(False, "--wait-for-completion")
+    wait_for_completion: bool = typer.Option(False, "--wait-for-completion"),
+    subscription_id: str = None,
+    resource_group: str = None,
+    workspace_name: str = None
 ) -> None:
     """Submit and/or publish the pipeline"""
 
-    lgbm_environment = WS.environments[environment]
+    cli_auth = AzureCliAuthentication()
+
+    if subscription_id and resource_group and workspace_name:
+        ws = Workspace(subscription_id, resource_group, workspace_name, auth=cli_auth)
+    else:
+        ws = Workspace.from_config(auth=cli_auth)
+
+    lgbm_environment = ws.environments[environment]
     run_config = RunConfiguration()
     run_config.environment = lgbm_environment
+
+    
 
     pipeline: Pipeline = create_pipeline(
         prep_script_path=prep_script_path,
@@ -280,6 +294,7 @@ def main(
         input_dataset=input_dataset_name,
         validation_dataset=validation_dataset_name,
         run_config=run_config,
+        ws=ws
     )
     pipeline.validate()
 
@@ -289,7 +304,7 @@ def main(
         tags = None
 
     if submit_pipeline and not publish_pipeline:
-        exp = Experiment(WS, experiment_name)
+        exp = Experiment(ws, experiment_name)
         run: PipelineRun = exp.submit(pipeline,
                                       pipeline_parameters={"force_registration": str(force_model_register),
                                                            "skip_registration": str(skip_model_register)},
@@ -306,7 +321,7 @@ def main(
 
         if submit_pipeline:
             published_pipeline.submit(
-                workspace=WS,
+                workspace=ws,
                 experiment_name=experiment_name,
                 pipeline_parameters={"force_registration": str(force_model_register),
                                      "skip_registration": str(skip_model_register)}
