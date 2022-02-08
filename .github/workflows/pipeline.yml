@@ -8,12 +8,6 @@ on:
         description: Environment to run the pipeline in.
         type: string
         default: development
-      resource_group:
-        required: true
-        type: string
-      aml_workspace:
-        required: true
-        type: string
       submit_pipeline:
         required: true
         type: string
@@ -52,7 +46,7 @@ jobs:
 
       - name: Set AML Defaults
         run: |
-          az configure --defaults group=${{inputs.resource_group}}  workspace=${{inputs.aml_workspace}}
+          az configure --defaults group=${{secrets.AML_WORKSPACE}}  workspace=${{secrets.AML_RESOURCE_GROUP}}
       
       - name: List Workspaces
         run: |

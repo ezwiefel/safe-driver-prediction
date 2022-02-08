@@ -11,8 +11,6 @@ jobs:
     uses: ./.github/workflows/pipeline.yml
     with:
       environment: development
-      resource_group: ${{ secrets.AML_RESOURCE_GROUP }}
-      aml_workspace: ${{ secrets.AML_WORKSPACE }}
     secrets:
       azure_sp_creds: ${{ secrets.AZURE_SP_CREDS }}
 
