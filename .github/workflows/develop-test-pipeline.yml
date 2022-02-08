@@ -4,13 +4,12 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   test-pipeline:
     uses: ./.github/workflows/pipeline.yml
     with:
-      environment: development
+      ENVIRONMENT: development
     secrets:
       azure_sp_creds: ${{ secrets.AZURE_SP_CREDS }}
 

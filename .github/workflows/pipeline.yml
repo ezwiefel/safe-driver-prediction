@@ -20,6 +20,7 @@ on:
       azure_sp_creds:
         description: Azure Service Principal Credentials
         required: true
+
 jobs:
   pipeline:
     runs-on: ubuntu-latest
