@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: development
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
       - uses: ./.github/workflows/pipeline.yml
         with:
           resource_group: ${{ secrets.AML_RESOURCE_GROUP }}
