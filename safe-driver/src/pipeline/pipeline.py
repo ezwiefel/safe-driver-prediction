@@ -13,7 +13,7 @@ from azureml.core import (ComputeTarget, Dataset,
 from azureml.core.authentication import AzureCliAuthentication
 from azureml.core.experiment import Experiment
 from azureml.pipeline.core import (Pipeline, PipelineData, PipelineParameter,
-                                   PublishedPipeline)
+                                   PublishedPipeline, PipelineRun)
 from azureml.pipeline.steps import PythonScriptStep
 
 CLI_AUTH = AzureCliAuthentication()
@@ -262,9 +262,10 @@ def main(
     validation_dataset_name: str = 'safe_driver_validation',
     run_id: str = None,
     run_attempt: int = None,
+    wait_for_completion: bool = typer.Option(False, "--wait-for-completion")
 ) -> None:
     """Submit and/or publish the pipeline"""
-
+    
     lgbm_environment = WS.environments[environment]
     run_config = RunConfiguration()
     run_config.environment = lgbm_environment
@@ -289,10 +290,13 @@ def main(
 
     if submit_pipeline and not publish_pipeline:
         exp = Experiment(WS, experiment_name)
-        exp.submit(pipeline,
+        run: PipelineRun = exp.submit(pipeline,
                    pipeline_parameters={"force_registration": str(force_model_register),
                                         "skip_registration": str(skip_model_register)},
                    tags=tags)
+
+        if wait_for_completion:
+            run.wait_for_completion(show_output=True)
 
     if publish_pipeline:
         published_pipeline: PublishedPipeline = pipeline.publish(

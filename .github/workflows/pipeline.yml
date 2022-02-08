@@ -64,6 +64,12 @@ jobs:
         run: |
           az ml environment create --file ./safe-driver/environ/environment.yml
 
+      - name: Make config.json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: config.json
+          json: '{"subscription_id": "${{secrets.AML_SUBSCRIPTION}}", "resource_group": "${{secrets.AML_RESOURCE_GROUP}}", "workspace_name": "${{secrets.AML_WORKSPACE}}""}'
+
       - name: Run Pipeline
         run: >
           python ./safe-driver/src/pipeline/pipeline.py
@@ -72,6 +78,7 @@ jobs:
           --run-id ${{ github.run_id }}
           --run-attempt ${{ github.run_attempt }}
           --experiment-name safe-driver-training
+          --wait-for-completion
       
       - name: Log Out of Azure
         if: ${{ always() }}
