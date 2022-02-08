@@ -1,0 +1,51 @@
+on:
+  workflow_call:
+    inputs:
+      resource_group:
+        required: true
+        type: string
+      aml_workspace:
+        required: true
+        type: string
+      submit_pipeline:
+        required: true
+        type: string
+        default: 'true'
+      publish_pipeline:
+        required: true
+        type: string
+        default: 'false'
+    secrets:
+      azure_sp_creds:
+        description: Azure Service Principal Credentials
+        required: true
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    name: Run / Publish Pipeline
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python Environment
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.9"
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{secrets.azure_sp_creds}}
+
+      - name: Install Az ML CLI v2
+        run: |
+          az extensions add --name ml
+
+      - name: Set AML Defaults
+        run: |
+          az configure --defaults group=${{inputs.resource_group}}  workspace=${{inputs.aml_workspace}}
+      
+      - name: List Workspaces
+        run: |
+          az ml workspace list

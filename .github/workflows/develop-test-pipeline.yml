@@ -1,0 +1,20 @@
+name: Run Pipeline Test | Development
+
+on: 
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test-pipeline:
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - uses: ./.github/workflows/pipeline.yml
+        with:
+          resource_group: ${{ secrets.AML_RESOURCE_GROUP }}
+          aml_workspace: ${{ secrets.AML_WORKSPACE }}
+          azure_sp_creds: ${{ secrets.AZURE_SP_CREDS }}
+
+
