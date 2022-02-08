@@ -42,7 +42,7 @@ jobs:
 
       - name: Install Az ML CLI v2
         run: |
-          az extensions add --name ml
+          az extension add --name ml
 
       - name: Set AML Defaults
         run: |
