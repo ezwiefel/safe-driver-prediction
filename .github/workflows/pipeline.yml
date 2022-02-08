@@ -64,7 +64,7 @@ jobs:
           az ml environment create --file ./safe-driver/environ/environment.yml
 
       - name: Run Pipeline
-        run: ->
+        run: >
           python ./safe-driver/pipeline/pipeline.py 
           --submit-pipeline ${{ inputs.submit_pipeline }} 
           --publish-pipeline ${{ inputs.publish_pipeline }}
