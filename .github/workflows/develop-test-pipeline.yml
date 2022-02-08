@@ -7,9 +7,9 @@ on:
 
 jobs:
   test-pipeline:
-    uses: ./.github/workflows/pipeline.yml
+    uses: ezwiefel/safe-driver-prediction/.github/workflows/pipeline.yml
     with:
-      ENVIRONMENT: development
+      environment: development
     secrets:
       azure_sp_creds: ${{ secrets.AZURE_SP_CREDS }}
 
