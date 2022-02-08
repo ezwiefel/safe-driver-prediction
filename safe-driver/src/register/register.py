@@ -11,7 +11,6 @@ from typing import Tuple
 
 import typer
 import mlflow
-from azureml.core import Run, Experiment
 
 METADATA_JSON = "metadata.json"
 

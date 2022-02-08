@@ -8,7 +8,7 @@ from typing import Tuple
 from pathlib import Path
 
 import typer
-from azureml.core import (ComputeTarget, Dataset, Environment,
+from azureml.core import (ComputeTarget, Dataset,
                           RunConfiguration, Workspace)
 from azureml.core.authentication import AzureCliAuthentication
 from azureml.core.experiment import Experiment
@@ -243,9 +243,11 @@ def main(
     register_script_path: Path = typer.Option(Path("./safe-driver/src/register"),
                                               exists=True, dir_okay=True, file_okay=False),
     force_model_register: bool = typer.Option(False, "--force-registration",
-                                              help="Force the model registration. Ignores model performance against the existing model"),
+                                              help="Force the model registration. Ignores model "
+                                                   "performance against the existing model"),
     skip_model_register: bool = typer.Option(False, '--skip-registration',
-                                             help="Skip the model registration. Ignores model performance against the existing model"),
+                                             help="Skip the model registration. Ignores model "
+                                                  "performance against the existing model"),
     submit_pipeline: bool = typer.Option(True, "--skip-submit-pipeline",
                                          help="Submit the pipeline for a run"),
     publish_pipeline: bool = typer.Option(False, '--publish-pipeline',

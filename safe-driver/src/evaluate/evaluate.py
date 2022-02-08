@@ -124,7 +124,8 @@ def compare_models(
         comparison_metric: Literal["any", "all", "f1_score", "auc"] = "any"
 ) -> bool:
     """
-    A function to compare the performance of the Champion and Challenger models on the validation dataset comparison metrics
+    A function to compare the performance of the Champion and Challenger models
+    on the validation dataset comparison metrics
     """
     comparison_metrics_directions = {"f1-score": ModelDirection.HIGHER_BETTER,
                                      "auc": ModelDirection.HIGHER_BETTER,
