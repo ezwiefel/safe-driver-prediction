@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 import typer
 from azureml.core import Model, Run, Workspace
-from azureml.exceptions import ModelNotFoundException
+from azureml.exceptions import ModelNotFoundException, WebserviceException
 
 from sklearn import metrics
 
@@ -193,8 +193,9 @@ def load_champion_model(
         champion_model.download(target_dir=champ_temp_dir)
         champion_model = mlflow.lightgbm.load_model(os.path.join(champ_temp_dir, "model"))
 
-    except ModelNotFoundException:
+    except (WebserviceException, ModelNotFoundException) as exp:
         logger.info(f"No model named '{model_name}' currently in registry - recommending model registration")
+        logger.info(f"Exception Raised: {exp.message}")
         register_model = True
         champion_model = None
 
