@@ -1,0 +1,14 @@
+name: Deploy Model
+
+on: 
+  repository_dispatch:
+    types: [model-registered]
+
+jobs:
+  note:
+    name: See Dispatch
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          MESSAGE: ${{ github.event.client_payload.message }}
+        run: echo $MESSAGE
