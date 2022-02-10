@@ -19,10 +19,10 @@ jobs:
   get-prod-details:
     name: Get Prod Details and Deploy if Not Exists
     runs-on: ubuntu-latest
-    environment: Development
-    # outputs:
-    #     prod_deployment_name: ${{ steps.get_prod_details.outputs.prod_deployment_name }}
-    #     prod_exists: ${{ steps.get_prod_details.outputs.prod_exists }}
+    environment: No Traffic
+    outputs:
+        prod_deployment_name: ${{ steps.get_prod_details.outputs.prod_deployment_name }}
+        prod_exists: ${{ steps.get_prod_details.outputs.prod_exists }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2.3.3
