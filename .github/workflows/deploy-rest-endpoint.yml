@@ -40,14 +40,14 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{secrets.azure_sp_creds}}
-
-      - name: Try upgrade?
-        run: |
-          az upgrade --yes
-
+      
       - name: Install Az ML CLI v2
         run: |
           az extension add --name ml
+
+      - name: Check Az Version
+        run: |
+          az --version
 
       - name: Set AML Defaults
         run: |
