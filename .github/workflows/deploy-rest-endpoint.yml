@@ -66,7 +66,7 @@ jobs:
           MODEL: 'azureml:${{ env.MODEL_NAME }}:${{ env.MODEL_VERSION }}'
         run: |
           az ml online-deployment create --file ./safe-driver/src/deploy/online-deployment.yaml --endpoint-name $PROD_ENDPOINT_NAME --name $RC_DEPLOYMENT_NAME --all-traffic --set model=$MODEL
-          az ml online-endpoint update --name $PROD_ENDPOINT_NAME --set tags='{"prod_deployment": "${{ envs.RC_DEPLOYMENT_NAME }}"}' 
+          az ml online-endpoint update --name $PROD_ENDPOINT_NAME --set tags='{"prod_deployment": "${{ env.RC_DEPLOYMENT_NAME }}"}' 
           az ml online-endpoint invoke --name $PROD_ENDPOINT_NAME --request-file safe-driver/src/deploy/multiple_request.json --deployment-name $RC_DEPLOYMENT_NAME
 
   deploy-no-traffic:
