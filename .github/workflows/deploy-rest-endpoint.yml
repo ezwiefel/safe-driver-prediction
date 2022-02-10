@@ -100,10 +100,10 @@ jobs:
           MODEL: 'azureml:${{ env.MODEL_NAME }}:${{ env.MODEL_VERSION }}'
         run: >
           az ml online-deployment create
-            --file ./safe-driver/src/deploy/online-deployment.yaml
-            --endpoint-name $PROD_ENDPOINT_NAME
-            --name $RC_DEPLOYMENT_NAME
-            --set model=$MODEL
+          --file ./safe-driver/src/deploy/online-deployment.yaml
+          --endpoint-name $PROD_ENDPOINT_NAME
+          --name $RC_DEPLOYMENT_NAME
+          --set model=$MODEL
 
       - name: Smoke Test Endpoint
         run: > 
@@ -142,8 +142,8 @@ jobs:
       - name: Set RC Traffic to 10%
         run: >
           az ml online-endpoint update
-            --name $PROD_ENDPOINT_NAME
-            --traffic "$PROD_DEPLOYMENT_NAME=90 $RC_DEPLOYMENT_NAME=10"
+          --name $PROD_ENDPOINT_NAME
+          --traffic "$PROD_DEPLOYMENT_NAME=90 $RC_DEPLOYMENT_NAME=10"
 
   deploy-100-percent:
     needs: [get-prod-details, deploy-no-traffic, deploy-10-percent]
@@ -175,13 +175,13 @@ jobs:
       - name: Set RC Traffic to 100%
         run: >
           az ml online-endpoint update
-            --name $PROD_ENDPOINT_NAME
-            --traffic '$PROD_DEPLOYMENT_NAME=0 $RC_DEPLOYMENT_NAME=100'
-            --set tags.prod_deployment=$RC_DEPLOYMENT_NAME
+          --name $PROD_ENDPOINT_NAME
+          --traffic '$PROD_DEPLOYMENT_NAME=0 $RC_DEPLOYMENT_NAME=100'
+          --set tags.prod_deployment=$RC_DEPLOYMENT_NAME
 
       - name: Remove Old Production Deployment
         run: >
           az ml online-deployment delete 
-            --name $PROD_DEPLOYMENT_NAME
-            --endpoint-name $PROD_ENDPOINT_NAME
-            --yes
+          --name $PROD_DEPLOYMENT_NAME
+          --endpoint-name $PROD_ENDPOINT_NAME
+          --yes
