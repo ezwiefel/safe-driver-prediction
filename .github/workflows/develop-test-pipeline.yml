@@ -5,10 +5,9 @@ on:
     branches:
       - main
       - develop
-
 jobs:
   Development:
-    uses: ezwiefel/safe-driver-prediction/.github/workflows/pipeline.yml@main
+    uses: ezwiefel/safe-driver-prediction/.github/workflows/pipeline.yml@develop
     with:
       environment: Development
     secrets:

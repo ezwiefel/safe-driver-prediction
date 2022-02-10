@@ -73,7 +73,7 @@ jobs:
         run: |
           az ml environment create --file ./safe-driver/environ/environment.yml
 
-      - name: Test AML
+      - name: List Workspaces
         run: |
           az ml workspace list
 
