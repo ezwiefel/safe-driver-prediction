@@ -56,7 +56,7 @@ jobs:
             echo ""::set-output name=prod_exists::0""
             echo ""::set-output name=prod_deployment_name::$RC_DEPLOYMENT_NAME""
           else
-            echo ""::set-output name=prod_deployment_name::$(az ml online-endpoint show --name $PROD_ENDPOINT_NAME --query 'tags.prod_deployment')""
+            echo ""::set-output name=prod_deployment_name::$(az ml online-endpoint show --name $PROD_ENDPOINT_NAME --output tsv --query 'tags.prod_deployment')""
             echo ""::set-output name=prod_exists::1""
           fi
 
