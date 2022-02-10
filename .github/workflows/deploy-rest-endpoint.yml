@@ -67,8 +67,10 @@ jobs:
 
       - name: Deploy if No Prod Exists
         if: ${{ steps.get_prod_details.outputs.prod_exists == 0 }}
+        env:
+          MODEL: 'azureml:${{ env.MODEL_NAME }}:${{ env.MODEL_VERSION }}'
         run: |
-          az ml online-deployment create --file ./safe-driver/src/deploy/online-deployment.yaml --endpoint-name $PROD_ENDPOINT_NAME --name $RC_DEPLOYMENT_NAME --all-traffic
+          az ml online-deployment create --file ./safe-driver/src/deploy/online-deployment.yaml --endpoint-name $PROD_ENDPOINT_NAME --name $RC_DEPLOYMENT_NAME --all-traffic --set model=$MODEL
           az ml online-endpoint update --name $PROD_ENDPOINT_NAME --set tags='{"prod_deployment": "$RC_DEPLOYMENT_NAME"}' 
           az ml online-endpoint invoke --name $PROD_ENDPOINT_NAME --request-file safe-driver/src/deploy/multiple_request.json --deployment-name $RC_DEPLOYMENT_NAME
 
@@ -106,6 +108,7 @@ jobs:
             --file ./safe-driver/src/deploy/online-deployment.yaml
             --endpoint-name $PROD_ENDPOINT_NAME
             --name $RC_DEPLOYMENT_NAME
+            --set model=$MODEL
 
       - name: Smoke Test Endpoint
         run: > 
