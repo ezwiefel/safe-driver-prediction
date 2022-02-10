@@ -47,7 +47,7 @@ jobs:
 
       - name: Check Az Version
         run: |
-          az --version
+          az upgrade --yes
 
       - name: Set AML Defaults
         run: |
@@ -57,6 +57,7 @@ jobs:
       - name: Create Endpoint if not exists
         run: | 
           az login --service-principal --username ${{ secrets.MLOPS_SP_ID }} --password ${{ secrets.MLOPS_SP_PASSWORD }} --tenant ${{ secrets.MLOPS_SP_TENANT_ID }}
+          az ml workspace list
           az ml online-endpoint list -o tsv --query "[?name=='$PROD_ENDPOINT_NAME'][name]" > endpoint-name.txt    
           export ENDPOINT_EXISTS=$(cat endpoint-name.txt |  wc -l)
 
