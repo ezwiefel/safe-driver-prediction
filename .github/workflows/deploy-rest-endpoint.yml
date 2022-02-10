@@ -42,7 +42,7 @@ jobs:
       - name: azure login
         uses: azure/login@v1
         with:
-          creds: ${{secrets.AZURE_CREDENTIALS}}
+          creds: ${{secrets.AZURE_SP_CREDS}}
       
       - name: Set defaults
         run: |
