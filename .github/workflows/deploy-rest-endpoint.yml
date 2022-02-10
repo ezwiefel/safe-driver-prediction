@@ -24,27 +24,42 @@ jobs:
     #     prod_deployment_name: ${{ steps.get_prod_details.outputs.prod_deployment_name }}
     #     prod_exists: ${{ steps.get_prod_details.outputs.prod_exists }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+      # - name: Checkout Repository
+      #   uses: actions/checkout@v2
 
-      # - name: Azure Login
-      #   uses: azure/login@v1
-      #   with:
-      #     creds: ${{secrets.AZURE_SP_CREDS}}
+      # # - name: Azure Login
+      # #   uses: azure/login@v1
+      # #   with:
+      # #     creds: ${{secrets.AZURE_SP_CREDS}}
       
-      - name: Install Az ML CLI v2
+      # - name: Install Az ML CLI v2
+      #   run: |
+      #     az extension remove --name azure-devops
+      #     az extension add --name ml --version 2.0.2 --yes
+      - name: Checkout
+        uses: actions/checkout@v2.3.3
+      
+      - name: azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{secrets.AZURE_CREDENTIALS}}
+      
+      - name: Set defaults
         run: |
-          az extension remove --name azure-devops
-          az extension add --name ml --version 2.0.2 --yes
-
-      - name: Set AML Defaults
-        run: |
-          az configure --defaults group=${{ secrets.AML_WORKSPACE }}  workspace=${{ secrets.AML_RESOURCE_GROUP }}
-          set az account set -s ${{ secrets.AML_SUBSCRIPTION }}  
+          az config set defaults.workspace=${{secrets.AML_WORKSPACE}}
+          az config set defaults.group=${{secrets.AML_RESOURCE_GROUP}}
+          az account set -s ${{secrets.AML_SUBSCRIPTION}}  
+      
+      - name: Install azureml cli extension
+        run: az extension add -n ml -y
+      # - name: Set AML Defaults
+      #   run: |
+      #     az configure --defaults group=${{ secrets.AML_WORKSPACE }}  workspace=${{ secrets.AML_RESOURCE_GROUP }}
+      #     set az account set -s ${{ secrets.AML_SUBSCRIPTION }}  
 
       - name: Create Endpoint if not exists
+          # az login --service-principal --username ${{ secrets.MLOPS_SP_ID }} --password ${{ secrets.MLOPS_SP_PASSWORD }} --tenant ${{ secrets.MLOPS_SP_TENANT_ID }}
         run: | 
-          az login --service-principal --username ${{ secrets.MLOPS_SP_ID }} --password ${{ secrets.MLOPS_SP_PASSWORD }} --tenant ${{ secrets.MLOPS_SP_TENANT_ID }}
           az ml workspace list
           az ml online-endpoint list -o tsv --query "[?name=='$PROD_ENDPOINT_NAME'][name]" > endpoint-name.txt    
           export ENDPOINT_EXISTS=$(cat endpoint-name.txt |  wc -l)
