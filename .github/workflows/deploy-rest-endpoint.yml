@@ -45,10 +45,6 @@ jobs:
         run: |
           az extension add --name ml
 
-      - name: Check Az Version
-        run: |
-          az upgrade --yes
-
       - name: Set AML Defaults
         run: |
           az configure --defaults group=${{ secrets.AML_WORKSPACE }}  workspace=${{ secrets.AML_RESOURCE_GROUP }}
