@@ -33,13 +33,13 @@ jobs:
 
       - name: Set AML Defaults
         run: |
-          az configure --defaults group=${{secrets.AML_WORKSPACE}}  workspace=${{secrets.AML_RESOURCE_GROUP}}
+          az configure --defaults group=${{ secrets.AML_WORKSPACE }}  workspace=${{ secrets.AML_RESOURCE_GROUP }}
 
       - name: Create Endpoint if not exists
         run: |      
-          export ENDPOINT_EXISTS=$(az ml online-endpoint list -o tsv --query "[?name=='${{secrets.PROD_ENDPOINT_NAME }}'][name]" |  wc -l)
+          export ENDPOINT_EXISTS=$(az ml online-endpoint list -o tsv --query "[?name=='$PROD_ENDPOINT_NAME'][name]" |  wc -l)
           if [[ ENDPOINT_EXISTS -ne 1 ]]; then
-            az ml online-endpoint create --name ${{secrets.PROD_ENDPOINT_NAME }} --file ./safe-driver/src/deploy/online-endpoint.yaml         
+            az ml online-endpoint create --name $PROD_ENDPOINT_NAME --file ./safe-driver/src/deploy/online-endpoint.yaml         
           else
             echo "endpoint exists"
           fi
@@ -47,24 +47,27 @@ jobs:
       - name: Get Prod Deployment Name
         id: get_prod_details
         run: |
-          export PROD_TAG_EXISTS=$(az ml online-endpoint show --name ${ENDPOINT_NAME} --query 'tags.prod_deployment' | wc -l)
+          export PROD_TAG_EXISTS=$(az ml online-endpoint show --name $PROD_ENDPOINT_NAME --query 'tags.prod_deployment' | wc -l)
           
           if [[ PROD_TAG_EXISTS -ne 1 ]]; then
             echo ""::set-output name=prod_exists::0""
             echo ""::set-output name=prod_deployment_name::$RC_DEPLOYMENT_NAME""
           else
-            echo ""::set-output name=prod_deployment_name::$(az ml online-endpoint show --name ${ENDPOINT_NAME} --query 'tags.prod_deployment'""
+            echo ""::set-output name=prod_deployment_name::$(az ml online-endpoint show --name $PROD_ENDPOINT_NAME --query 'tags.prod_deployment'""
             echo ""::set-output name=prod_exists::1""
           fi
 
       - name: Deploy if No Prod Exists
         if: ${{ steps.get_prod_details.outputs.prod_exists == 0 }}
         run: |
-          az ml online-deployment create --file ./safe-driver/src/deploy/online-deployment.yaml --endpoint-name $PROD_ENDPOINT_NAME --name ${{ env.RC_DEPLOYMENT_NAME }} --all-traffic
+          az ml online-deployment create --file ./safe-driver/src/deploy/online-deployment.yaml --endpoint-name $PROD_ENDPOINT_NAME --name $env.RC_DEPLOYMENT_NAME --all-traffic
           az ml online-endpoint update --name $PROD_ENDPOINT_NAME --set tags='{"prod_deployment": "$RC_DEPLOYMENT_NAME"}' 
+          az ml online-endpoint invoke --name $PROD_ENDPOINT_NAME --request-file safe-driver/src/deploy/multiple_request.json --deployment-name $RC_DEPLOYMENT_NAME
 
   deploy-no-traffic:
     name: Deploy with No Traffic and Test
+    needs: get-prod-details
+    if: ${{ needs.get-prod-details.outputs.prod_exists == 1 }}
     runs-on: ubuntu-latest
     environment: No Traffic
     steps:
@@ -88,18 +91,18 @@ jobs:
         id: deploy-endpoint
         env:
           MODEL: 'azureml:${{ env.MODEL_NAME }}:${{ env.MODEL_VERSION }}'
-        run: |
+        run: >
           az ml online-deployment create
             --file ./safe-driver/src/deploy/online-deployment.yaml
             --endpoint-name $PROD_ENDPOINT_NAME
-            --name ${{ env.RC_DEPLOYMENT_NAME }}
+            --name $RC_DEPLOYMENT_NAME
 
       - name: Smoke Test Endpoint
         run: > 
           az ml online-endpoint invoke 
           --name $PROD_ENDPOINT_NAME
           --request-file safe-driver/src/deploy/multiple_request.json
-          --name ${{ env.RC_DEPLOYMENT_NAME }}
+          --deployment-name $RC_DEPLOYMENT_NAME
   
   deploy-10-percent:
     needs: [get-prod-details, deploy-no-traffic]
