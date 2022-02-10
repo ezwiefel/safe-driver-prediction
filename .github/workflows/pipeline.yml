@@ -56,11 +56,14 @@ jobs:
 
       - name: Install Az ML CLI v2
         run: |
-          az extension add --name ml
+          az extension add --name ml --yes
 
       - name: Set AML Defaults
         run: |
-          az configure --defaults group=${{secrets.AML_WORKSPACE}}  workspace=${{secrets.AML_RESOURCE_GROUP}}
+          az config set defaults.workspace=${{secrets.AML_WORKSPACE}}
+          az config set defaults.group=${{secrets.AML_RESOURCE_GROUP}}
+          az account set -s ${{secrets.AML_SUBSCRIPTION}}  
+
       - name: Check if Environment Files Updated
         uses: dorny/paths-filter@v2
         id: changes
