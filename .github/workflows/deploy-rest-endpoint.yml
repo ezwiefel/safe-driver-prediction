@@ -43,7 +43,7 @@ jobs:
 
       - name: Print AZ Account List
         run: |
-          az account list
+          az ml online-endpoint list
 
       - name: Create Endpoint if not exists
         run: | 
