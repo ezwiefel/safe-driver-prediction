@@ -27,10 +27,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Azure Login
-        uses: azure/login@v1
+      - name: Set up Python Environment
+        uses: actions/setup-python@v1
         with:
-          creds: ${{ secrets.AZURE_SP_CREDS }}
+          python-version: "3.8"
+      - name: Install Python Build Agent Dependencies
+        run: |
+          pip install pip==20.2.3
+          pip install -r ./.github/workflows/build-requirements.txt
+
+      - name: Azure Login
+        uses: Azure/cli@v1
+        run:
+          az login --service-principal --username ${{ secrets.MLOPS_SP_ID }} --password ${{ secrets.MLOPS_SP_PASSWORD }} --tenant ${{ secrets.MLOPS_SP_TENANT_ID }}
 
       - name: Install Az ML CLI v2
         run: |
@@ -41,11 +50,8 @@ jobs:
           az configure --defaults group=${{ secrets.AML_WORKSPACE }}  workspace=${{ secrets.AML_RESOURCE_GROUP }}
           set az account set -s ${{ secrets.AML_SUBSCRIPTION }}  
 
-      - name: Print AZ Account List
-        run: |
-          az ml online-endpoint list
-
       - name: Create Endpoint if not exists
+      # az login --service-principal --username ${{ secrets.MLOPS_SP_ID }} --password ${{ secrets.MLOPS_SP_PASSWORD }} --tenant ${{ secrets.MLOPS_SP_TENANT_ID }}
         run: | 
           az ml online-endpoint list -o tsv --query "[?name=='$PROD_ENDPOINT_NAME'][name]" > endpoint-name.txt    
           export ENDPOINT_EXISTS=$(cat endpoint-name.txt |  wc -l)
@@ -59,6 +65,7 @@ jobs:
       - name: Get Prod Deployment Name
         id: get_prod_details
         run: |
+          az login --service-principal --username ${{ secrets.MLOPS_SP_ID }} --password ${{ secrets.MLOPS_SP_PASSWORD }} --tenant ${{ secrets.MLOPS_SP_TENANT_ID }}
           az ml online-endpoint show --name $PROD_ENDPOINT_NAME --query 'tags.prod_deployment' > prod-deployment-name.txt
           export PROD_TAG_EXISTS=$(cat prod-deployment-name.txt | wc -l)
           
