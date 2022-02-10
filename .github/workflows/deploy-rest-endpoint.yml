@@ -8,7 +8,7 @@ on:
       - develop
 
 env:
-  PROD_ENDPOINT_NAME: prod-endpoint-driver-safety
+  PROD_ENDPOINT_NAME: prod-drive-safe-endpoint
   # MODEL_NAME: ${{ github.event.client_payload.data.modelName }}
   # MODEL_VERSION: ${{ github.event.client_payload.data.modelVersion }}
   MODEL_NAME: SafeDriverModel
