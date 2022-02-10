@@ -30,7 +30,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{secrets.azure_sp_creds}}
+          creds: ${{secrets.AZURE_SP_CREDS}}
       
       - name: Install Az ML CLI v2
         run: |
