@@ -44,7 +44,7 @@ jobs:
       
       - name: Create Endpoint if not exists
         run: | 
-          export ENDPOINT_EXISTS=$(az ml online-endpoint list -o tsv --query "[?name=='$PROD_ENDPOINT_NAME'][name]" |  wc -l)
+          export ENDPOINT_EXISTS=$(az ml online-endpoint list -o tsv --query "[?name=='${{ env.PROD_ENDPOINT_NAME }}'][name]" |  wc -l)
 
           if [[ ENDPOINT_EXISTS -ne 1 ]]; then
             az ml online-endpoint create --name $PROD_ENDPOINT_NAME --file ./safe-driver/src/deploy/online-endpoint.yaml         
