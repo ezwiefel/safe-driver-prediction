@@ -1,8 +1,8 @@
 name: Deploy Model
 
 on: 
-  repository_dispatch:
-    types: [model-registered]
+  # repository_dispatch:
+  #   types: [model-registered]
   push:
     branches:
       - develop
@@ -26,15 +26,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-
-      - name: Set up Python Environment
-        uses: actions/setup-python@v1
-        with:
-          python-version: "3.8"
-      - name: Install Python Build Agent Dependencies
-        run: |
-          pip install pip==20.2.3
-          pip install -r ./.github/workflows/build-requirements.txt
 
       - name: Azure Login
         uses: azure/login@v1
