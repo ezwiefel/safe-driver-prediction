@@ -7,7 +7,7 @@ on:
       - develop
 jobs:
   Development:
-    uses: ezwiefel/safe-driver-prediction/.github/workflows/pipeline.yml@develop
+    uses: ezwiefel/safe-driver-prediction/.github/workflows/pipeline.yml@main
     with:
       environment: Development
     secrets:

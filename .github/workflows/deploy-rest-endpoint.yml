@@ -34,35 +34,17 @@ jobs:
       
       - name: Install Az ML CLI v2
         run: |
-          az extension remove --name azure-devops
           az extension add --name ml --yes
-      # - name: Checkout
-      #   uses: actions/checkout@v2.3.3
       
-      # - name: azure login
-      #   uses: azure/login@v1
-      #   with:
-      #     creds: ${{secrets.AZURE_SP_CREDS}}
-      
-      - name: Set defaults
+      - name: Set AML Defaults
         run: |
           az config set defaults.workspace=${{secrets.AML_WORKSPACE}}
           az config set defaults.group=${{secrets.AML_RESOURCE_GROUP}}
           az account set -s ${{secrets.AML_SUBSCRIPTION}}  
       
-      # - name: Install azureml cli extension
-      #   run: az extension add -n ml -y
-      # - name: Set AML Defaults
-      #   run: |
-      #     az configure --defaults group=${{ secrets.AML_WORKSPACE }}  workspace=${{ secrets.AML_RESOURCE_GROUP }}
-      #     set az account set -s ${{ secrets.AML_SUBSCRIPTION }}  
-
       - name: Create Endpoint if not exists
-          # az login --service-principal --username ${{ secrets.MLOPS_SP_ID }} --password ${{ secrets.MLOPS_SP_PASSWORD }} --tenant ${{ secrets.MLOPS_SP_TENANT_ID }}
         run: | 
-          az ml workspace list
-          az ml online-endpoint list -o tsv --query "[?name=='$PROD_ENDPOINT_NAME'][name]" > endpoint-name.txt    
-          export ENDPOINT_EXISTS=$(cat endpoint-name.txt |  wc -l)
+          export ENDPOINT_EXISTS=$(az ml online-endpoint list -o tsv --query "[?name=='$PROD_ENDPOINT_NAME'][name]" |  wc -l)
 
           if [[ ENDPOINT_EXISTS -ne 1 ]]; then
             az ml online-endpoint create --name $PROD_ENDPOINT_NAME --file ./safe-driver/src/deploy/online-endpoint.yaml         
@@ -71,133 +53,137 @@ jobs:
           fi
 
       - name: Get Prod Deployment Name
-        # az login --service-principal --username ${{ secrets.MLOPS_SP_ID }} --password ${{ secrets.MLOPS_SP_PASSWORD }} --tenant ${{ secrets.MLOPS_SP_TENANT_ID }}
         id: get_prod_details
         run: |
-          az ml online-endpoint show --name $PROD_ENDPOINT_NAME --query 'tags.prod_deployment' > prod-deployment-name.txt
-          export PROD_TAG_EXISTS=$(cat prod-deployment-name.txt | wc -l)
+          export PROD_TAG_EXISTS=$(az ml online-endpoint show --name $PROD_ENDPOINT_NAME --query 'tags.prod_deployment' | wc -l)
           
           if [[ PROD_TAG_EXISTS -ne 1 ]]; then
             echo ""::set-output name=prod_exists::0""
             echo ""::set-output name=prod_deployment_name::$RC_DEPLOYMENT_NAME""
           else
-            echo ""::set-output name=prod_deployment_name::$(cat prod-deployment-name.txt)""
+            echo ""::set-output name=prod_deployment_name::$(az ml online-endpoint show --name $PROD_ENDPOINT_NAME --query 'tags.prod_deployment')""
             echo ""::set-output name=prod_exists::1""
           fi
 
       - name: Deploy if No Prod Exists
         if: ${{ steps.get_prod_details.outputs.prod_exists == 0 }}
         run: |
-          az ml online-deployment create --file ./safe-driver/src/deploy/online-deployment.yaml --endpoint-name $PROD_ENDPOINT_NAME --name $env.RC_DEPLOYMENT_NAME --all-traffic
+          az ml online-deployment create --file ./safe-driver/src/deploy/online-deployment.yaml --endpoint-name $PROD_ENDPOINT_NAME --name $RC_DEPLOYMENT_NAME --all-traffic
           az ml online-endpoint update --name $PROD_ENDPOINT_NAME --set tags='{"prod_deployment": "$RC_DEPLOYMENT_NAME"}' 
           az ml online-endpoint invoke --name $PROD_ENDPOINT_NAME --request-file safe-driver/src/deploy/multiple_request.json --deployment-name $RC_DEPLOYMENT_NAME
 
-  # deploy-no-traffic:
-  #   name: Deploy with No Traffic and Test
-  #   needs: get-prod-details
-  #   if: ${{ needs.get-prod-details.outputs.prod_exists == 1 }}
-  #   runs-on: ubuntu-latest
-  #   environment: No Traffic
-  #   steps:
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v2
+  deploy-no-traffic:
+    name: Deploy with No Traffic and Test
+    needs: get-prod-details
+    if: ${{ needs.get-prod-details.outputs.prod_exists == 1 }}
+    runs-on: ubuntu-latest
+    environment: No Traffic
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-  #     - name: Azure Login
-  #       uses: azure/login@v1
-  #       with:
-  #         creds: ${{ secrets.AZURE_SP_CREDS }}
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SP_CREDS }}
 
-  #     - name: Install Az ML CLI v2
-  #       run: |
-  #         az extension add --name ml
+      - name: Install Az ML CLI v2
+        run: |
+          az extension add --name ml
 
-  #     - name: Set AML Defaults
-  #       run: |
-  #         az configure --defaults group=${{secrets.AML_WORKSPACE}}  workspace=${{secrets.AML_RESOURCE_GROUP}}
+      - name: Set AML Defaults
+        run: |
+          az config set defaults.workspace=${{secrets.AML_WORKSPACE}}
+          az config set defaults.group=${{secrets.AML_RESOURCE_GROUP}}
+          az account set -s ${{secrets.AML_SUBSCRIPTION}}  
           
-  #     - name: Deploy Managed Service
-  #       id: deploy-endpoint
-  #       env:
-  #         MODEL: 'azureml:${{ env.MODEL_NAME }}:${{ env.MODEL_VERSION }}'
-  #       run: >
-  #         az ml online-deployment create
-  #           --file ./safe-driver/src/deploy/online-deployment.yaml
-  #           --endpoint-name $PROD_ENDPOINT_NAME
-  #           --name $RC_DEPLOYMENT_NAME
+      - name: Deploy Managed Service
+        id: deploy-endpoint
+        env:
+          MODEL: 'azureml:${{ env.MODEL_NAME }}:${{ env.MODEL_VERSION }}'
+        run: >
+          az ml online-deployment create
+            --file ./safe-driver/src/deploy/online-deployment.yaml
+            --endpoint-name $PROD_ENDPOINT_NAME
+            --name $RC_DEPLOYMENT_NAME
 
-  #     - name: Smoke Test Endpoint
-  #       run: > 
-  #         az ml online-endpoint invoke 
-  #         --name $PROD_ENDPOINT_NAME
-  #         --request-file safe-driver/src/deploy/multiple_request.json
-  #         --deployment-name $RC_DEPLOYMENT_NAME
+      - name: Smoke Test Endpoint
+        run: > 
+          az ml online-endpoint invoke 
+          --name $PROD_ENDPOINT_NAME
+          --request-file safe-driver/src/deploy/multiple_request.json
+          --deployment-name $RC_DEPLOYMENT_NAME
   
-  # deploy-10-percent:
-  #   needs: [get-prod-details, deploy-no-traffic]
-  #   if: ${{ needs.get-prod-details.outputs.prod_exists == 1 }}
-  #   name: Deploy to 10% Traffic
-  #   runs-on: ubuntu-latest
-  #   environment: 10% Traffic
-  #   env:
-  #     PROD_DEPLOYMENT_NAME: ${{ needs.get-prod-details.outputs.prod_deployment_name }}
-  #   steps:
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v2
+  deploy-10-percent:
+    needs: [get-prod-details, deploy-no-traffic]
+    if: ${{ needs.get-prod-details.outputs.prod_exists == 1 }}
+    name: Deploy to 10% Traffic
+    runs-on: ubuntu-latest
+    environment: 10% Traffic
+    env:
+      PROD_DEPLOYMENT_NAME: ${{ needs.get-prod-details.outputs.prod_deployment_name }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-  #     - name: Azure Login
-  #       uses: azure/login@v1
-  #       with:
-  #         creds: ${{ secrets.AZURE_SP_CREDS }}
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SP_CREDS }}
 
-  #     - name: Install Az ML CLI v2
-  #       run: |
-  #         az extension add --name ml
+      - name: Install Az ML CLI v2
+        run: |
+          az extension add --name ml
 
-  #     - name: Set AML Defaults
-  #       run: |
-  #         az configure --defaults group=${{secrets.AML_WORKSPACE}}  workspace=${{secrets.AML_RESOURCE_GROUP}}
+      - name: Set AML Defaults
+        run: |
+          az config set defaults.workspace=${{secrets.AML_WORKSPACE}}
+          az config set defaults.group=${{secrets.AML_RESOURCE_GROUP}}
+          az account set -s ${{secrets.AML_SUBSCRIPTION}}  
       
-  #     - name: Set RC Traffic to 10%
-  #       run: >
-  #         az ml online-endpoint update
-  #           --name $PROD_ENDPOINT_NAME
-  #           --traffic "$PROD_DEPLOYMENT_NAME=90 $RC_DEPLOYMENT_NAME=10"
+      - name: Set RC Traffic to 10%
+        run: >
+          az ml online-endpoint update
+            --name $PROD_ENDPOINT_NAME
+            --traffic "$PROD_DEPLOYMENT_NAME=90 $RC_DEPLOYMENT_NAME=10"
 
-  # deploy-100-percent:
-  #   needs: [get-prod-details, deploy-no-traffic, deploy-10-percent]
-  #   if: ${{ needs.get-prod-details.outputs.prod_exists == 1 }}
-  #   name: Deploy 100% Traffic
-  #   runs-on: ubuntu-latest
-  #   environment: Production
-  #   env:
-  #     PROD_DEPLOYMENT_NAME: ${{ needs.get-prod-details.outputs.prod_deployment_name }}
-  #   steps:
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v2
+  deploy-100-percent:
+    needs: [get-prod-details, deploy-no-traffic, deploy-10-percent]
+    if: ${{ needs.get-prod-details.outputs.prod_exists == 1 }}
+    name: Deploy 100% Traffic
+    runs-on: ubuntu-latest
+    environment: Production
+    env:
+      PROD_DEPLOYMENT_NAME: ${{ needs.get-prod-details.outputs.prod_deployment_name }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-  #     - name: Azure Login
-  #       uses: azure/login@v1
-  #       with:
-  #         creds: ${{ secrets.AZURE_SP_CREDS }}
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SP_CREDS }}
 
-  #     - name: Install Az ML CLI v2
-  #       run: |
-  #         az extension add --name ml
+      - name: Install Az ML CLI v2
+        run: |
+          az extension add --name ml
 
-  #     - name: Set AML Defaults
-  #       run: |
-  #         az configure --defaults group=${{secrets.AML_WORKSPACE}}  workspace=${{secrets.AML_RESOURCE_GROUP}}
+      - name: Set AML Defaults
+        run: |
+          az config set defaults.workspace=${{secrets.AML_WORKSPACE}}
+          az config set defaults.group=${{secrets.AML_RESOURCE_GROUP}}
+          az account set -s ${{secrets.AML_SUBSCRIPTION}}  
       
-  #     - name: Set RC Traffic to 100%
-  #       run: >
-  #         az ml online-endpoint update
-  #           --name $PROD_ENDPOINT_NAME
-  #           --traffic "$PROD_DEPLOYMENT_NAME=0 $RC_DEPLOYMENT_NAME=100"
-  #           --set tags.prod_deployment=$RC_DEPLOYMENT_NAME
+      - name: Set RC Traffic to 100%
+        run: >
+          az ml online-endpoint update
+            --name $PROD_ENDPOINT_NAME
+            --traffic "$PROD_DEPLOYMENT_NAME=0 $RC_DEPLOYMENT_NAME=100"
+            --set tags.prod_deployment=$RC_DEPLOYMENT_NAME
       
-  #     - name: Remove Old Production Deployment
-  #       run: >
-  #         az ml online-deployment delete 
-  #           --name $PROD_DEPLOYMENT_NAME
-  #           --endpoint-name $PROD_ENDPOINT_NAME
-  #           --yes
+      - name: Remove Old Production Deployment
+        run: >
+          az ml online-deployment delete 
+            --name $PROD_DEPLOYMENT_NAME
+            --endpoint-name $PROD_ENDPOINT_NAME
+            --yes
