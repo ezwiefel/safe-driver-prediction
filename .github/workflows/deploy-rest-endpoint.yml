@@ -36,8 +36,10 @@ jobs:
           az configure --defaults group=${{ secrets.AML_WORKSPACE }}  workspace=${{ secrets.AML_RESOURCE_GROUP }}
 
       - name: Create Endpoint if not exists
-        run: |      
-          export ENDPOINT_EXISTS=$(az ml online-endpoint list -o tsv --query "[?name=='$PROD_ENDPOINT_NAME'][name]" |  wc -l)
+        run: | 
+          az ml online-endpoint list -o tsv --query "[?name=='$PROD_ENDPOINT_NAME'][name]" > endpoint-name.txt    
+          export ENDPOINT_EXISTS=$(cat endpoint-name.txt |  wc -l)
+
           if [[ ENDPOINT_EXISTS -ne 1 ]]; then
             az ml online-endpoint create --name $PROD_ENDPOINT_NAME --file ./safe-driver/src/deploy/online-endpoint.yaml         
           else
@@ -47,13 +49,14 @@ jobs:
       - name: Get Prod Deployment Name
         id: get_prod_details
         run: |
-          export PROD_TAG_EXISTS=$(az ml online-endpoint show --name $PROD_ENDPOINT_NAME --query 'tags.prod_deployment' | wc -l)
+          az ml online-endpoint show --name $PROD_ENDPOINT_NAME --query 'tags.prod_deployment' > prod-deployment-name.txt
+          export PROD_TAG_EXISTS=$(cat prod-deployment-name.txt | wc -l)
           
           if [[ PROD_TAG_EXISTS -ne 1 ]]; then
             echo ""::set-output name=prod_exists::0""
             echo ""::set-output name=prod_deployment_name::$RC_DEPLOYMENT_NAME""
           else
-            echo ""::set-output name=prod_deployment_name::$(az ml online-endpoint show --name $PROD_ENDPOINT_NAME --query 'tags.prod_deployment'""
+            echo ""::set-output name=prod_deployment_name::$(cat prod-deployment-name.txt)""
             echo ""::set-output name=prod_exists::1""
           fi
 
