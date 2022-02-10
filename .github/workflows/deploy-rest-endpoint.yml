@@ -41,6 +41,10 @@ jobs:
         with:
           creds: ${{secrets.azure_sp_creds}}
 
+      - name: Try upgrade?
+        run: |
+          az upgrade --yes
+
       - name: Install Az ML CLI v2
         run: |
           az extension add --name ml
