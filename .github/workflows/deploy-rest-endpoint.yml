@@ -34,7 +34,8 @@ jobs:
       
       - name: Install Az ML CLI v2
         run: |
-          az extension add --name ml
+          az extension remove --name azure-devops
+          az extension add --name ml --version 2.0.2
 
       - name: Set AML Defaults
         run: |
