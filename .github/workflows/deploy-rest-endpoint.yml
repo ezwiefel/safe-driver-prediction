@@ -27,10 +27,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{secrets.AZURE_SP_CREDS}}
+      # - name: Azure Login
+      #   uses: azure/login@v1
+      #   with:
+      #     creds: ${{secrets.AZURE_SP_CREDS}}
       
       - name: Install Az ML CLI v2
         run: |
