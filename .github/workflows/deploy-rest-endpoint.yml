@@ -38,8 +38,9 @@ jobs:
 
       - name: Azure Login
         uses: Azure/cli@v1
-        run:
-          az login --service-principal --username ${{ secrets.MLOPS_SP_ID }} --password ${{ secrets.MLOPS_SP_PASSWORD }} --tenant ${{ secrets.MLOPS_SP_TENANT_ID }}
+        with:
+          inlineScript: |
+            az login --service-principal --username ${{ secrets.MLOPS_SP_ID }} --password ${{ secrets.MLOPS_SP_PASSWORD }} --tenant ${{ secrets.MLOPS_SP_TENANT_ID }}
 
       - name: Install Az ML CLI v2
         run: |
