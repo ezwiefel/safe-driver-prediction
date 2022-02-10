@@ -63,7 +63,7 @@ jobs:
           az config set defaults.workspace=${{secrets.AML_WORKSPACE}}
           az config set defaults.group=${{secrets.AML_RESOURCE_GROUP}}
           az account set -s ${{secrets.AML_SUBSCRIPTION}}  
-          
+
       - name: Check if Environment Files Updated
         uses: dorny/paths-filter@v2
         id: changes
@@ -75,10 +75,6 @@ jobs:
         name: Register Environment
         run: |
           az ml environment create --file ./safe-driver/environ/environment.yml
-
-      - name: List Workspaces
-        run: |
-          az ml workspace list
 
       - name: Run Pipeline
         env:
