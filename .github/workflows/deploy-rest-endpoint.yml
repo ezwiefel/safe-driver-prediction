@@ -117,7 +117,7 @@ jobs:
     if: ${{ needs.get-prod-details.outputs.prod_exists == 1 }}
     name: Deploy to 10% Traffic
     runs-on: ubuntu-latest
-    environment: 10% Traffic
+    environment: No Traffic
     env:
       PROD_DEPLOYMENT_NAME: ${{ needs.get-prod-details.outputs.prod_deployment_name }}
     steps:
