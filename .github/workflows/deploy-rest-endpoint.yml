@@ -19,7 +19,7 @@ jobs:
   get-prod-details:
     name: Get Prod Details (and Deploy if Not Exists)
     runs-on: ubuntu-latest
-    environment: No Traffic
+    environment: Development
     # outputs:
     #     prod_deployment_name: ${{ steps.get_prod_details.outputs.prod_deployment_name }}
     #     prod_exists: ${{ steps.get_prod_details.outputs.prod_exists }}
@@ -42,8 +42,8 @@ jobs:
           set az account set -s ${{ secrets.AML_SUBSCRIPTION }}  
 
       - name: Create Endpoint if not exists
+          # az login --service-principal --username ${{ secrets.MLOPS_SP_ID }} --password ${{ secrets.MLOPS_SP_PASSWORD }} --tenant ${{ secrets.MLOPS_SP_TENANT_ID }}
         run: | 
-          az login --service-principal --username ${{ secrets.MLOPS_SP_ID }} --password ${{ secrets.MLOPS_SP_PASSWORD }} --tenant ${{ secrets.MLOPS_SP_TENANT_ID }}
           az ml workspace list
           az ml online-endpoint list -o tsv --query "[?name=='$PROD_ENDPOINT_NAME'][name]" > endpoint-name.txt    
           export ENDPOINT_EXISTS=$(cat endpoint-name.txt |  wc -l)
