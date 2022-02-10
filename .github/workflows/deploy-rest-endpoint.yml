@@ -3,11 +3,16 @@ name: Deploy Model
 on: 
   repository_dispatch:
     types: [model-registered]
+  push:
+    branches:
+      - develop
 
 env:
   PROD_ENDPOINT_NAME: prod-endpoint-driver-safety
-  MODEL_NAME: ${{ github.event.client_payload.data.modelName }}
-  MODEL_VERSION: ${{ github.event.client_payload.data.modelVersion }}
+  # MODEL_NAME: ${{ github.event.client_payload.data.modelName }}
+  # MODEL_VERSION: ${{ github.event.client_payload.data.modelVersion }}
+  MODEL_NAME: SafeDriverModel
+  MODEL_VERSION: 1
   RC_DEPLOYMENT_NAME: 'run-${{ github.run_number }}-${{ github.run_attempt }}'
 
 jobs:
@@ -34,6 +39,11 @@ jobs:
       - name: Set AML Defaults
         run: |
           az configure --defaults group=${{ secrets.AML_WORKSPACE }}  workspace=${{ secrets.AML_RESOURCE_GROUP }}
+          set az account set -s ${{ secrets.AML_SUBSCRIPTION }}  
+
+      - name: Print AZ Account List
+        run: |
+          az account list
 
       - name: Create Endpoint if not exists
         run: | 
