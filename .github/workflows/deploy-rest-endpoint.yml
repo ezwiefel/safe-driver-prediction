@@ -17,7 +17,7 @@ env:
 
 jobs:
   get-prod-details:
-    name: Get Prod Details (and Deploy if Not Exists)
+    name: Get Prod Details and Deploy if Not Exists
     runs-on: ubuntu-latest
     environment: Development
     # outputs:

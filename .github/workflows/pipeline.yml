@@ -73,6 +73,10 @@ jobs:
         run: |
           az ml environment create --file ./safe-driver/environ/environment.yml
 
+      - name: Test AML
+        run: |
+          az ml workspace list
+
       - name: Run Pipeline
         env:
           AML_SUBSCRIPTION: ${{ secrets.AML_SUBSCRIPTION }}
