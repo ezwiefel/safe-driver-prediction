@@ -2,5 +2,5 @@ $schema: https://azuremlschemas.azureedge.net/latest/managedOnlineDeployment.sch
 name: blue
 endpoint_name: prod-endpoint-driver-safety
 model: azureml:SafeDriverModel:3
-instance_type: Standard_F2s_v2
+instance_type: Standard_F4s_v2
 instance_count: 1
