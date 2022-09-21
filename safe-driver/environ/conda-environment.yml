@@ -12,3 +12,4 @@ dependencies:
 - pip
 - pip:
   - azureml-mlflow==1.45.0
+  - azureml-core==1.45.0
